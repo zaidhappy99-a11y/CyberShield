@@ -43,15 +43,17 @@ const API = {
     if (BACKEND_ONLINE === null) await checkBackend();
 
     if (BACKEND_ONLINE) {
-      try {
-        const res = await fetch(`${API_BASE_URL}${endpoint}`, cfg);
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const contentType = res.headers.get('content-type') || '';
-        return contentType.includes('application/json') ? await res.json() : await res.text();
-      } catch (err) {
-        BACKEND_ONLINE = false;
-        console.warn('Backend offline, using demo mode');
+      const res = await fetch(`${API_BASE_URL}${endpoint}`, { ...cfg, credentials: 'same-origin' });
+      if (!res.ok) {
+        let msg = 'HTTP ' + res.status;
+        try {
+          const data = await res.clone().json();
+          if (data && data.error) msg = data.error;
+        } catch (e) { /* not JSON — keep status */ }
+        throw new Error(msg);
       }
+      const contentType = res.headers.get('content-type') || '';
+      return contentType.includes('application/json') ? await res.json() : await res.text();
     }
 
     return this.mockResponse(endpoint, options.method || 'GET', options.body);

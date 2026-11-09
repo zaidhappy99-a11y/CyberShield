@@ -9,6 +9,13 @@ const isFileProtocol = window.location.protocol === 'file:';
 const API_BASE = isFileProtocol ? '' : window.location.origin;
 
 function logoutNetSentinel() {
+  if (!isFileProtocol) {
+    try {
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), 2000);
+      await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST', signal: controller.signal });
+    } catch (e) { /* server may be asleep — clear local state anyway */ }
+  }
   try {
     sessionStorage.removeItem('netsentinel_user');
     localStorage.removeItem('netsentinel_user');
@@ -24,7 +31,7 @@ function logoutNetSentinel() {
 // When the SOC app is served over HTTP without an account, send the
 // user back through the landing flow. Direct file:// opening stays
 // open so the standalone demo keeps working.
-(function requireNetSentinelAuth() {
+(async function requireNetSentinelAuth() {
   if (isFileProtocol) return;
   let user = null;
   try {
@@ -33,6 +40,21 @@ function logoutNetSentinel() {
   if (!user) {
     window.location.replace('/login.html');
     throw new Error('Redirecting to login');
+  }
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/me`, { credentials: 'same-origin' });
+    if (!res.ok) {
+      try {
+        sessionStorage.removeItem('netsentinel_user');
+        localStorage.removeItem('netsentinel_user');
+      } catch (e) { /* ignore */ }
+      window.location.replace('/login.html');
+      throw new Error('Session expired, redirecting to login');
+    }
+  } catch (err) {
+    if (err && err.message && err.message.indexOf('redirecting') !== -1) throw err;
+    // Server unreachable (e.g. detector-only mode) — keep the local gate result.
+    console.warn('Could not verify server session; continuing with local auth.');
   }
 })();
 

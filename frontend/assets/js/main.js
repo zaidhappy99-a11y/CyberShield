@@ -212,8 +212,11 @@ function initAuthForms() {
                 window.location.href = getNetSentinelUrl();
             } catch (error) {
                 console.error('Login failed:', error);
-                setFormMessage('loginForm', 'We couldn\'t sign you in. Check your details and try again in a moment.', 'error');
-                showToast('Login failed. Please try again.', 'error');
+                const msg = (error && error.message && !error.message.startsWith('HTTP'))
+                    ? error.message
+                    : 'We couldn\'t sign you in. Check your details and try again in a moment.';
+                setFormMessage('loginForm', msg, 'error');
+                showToast(msg, 'error');
                 setLoading('loginForm', false);
             }
         });
@@ -261,8 +264,11 @@ function initAuthForms() {
                 window.location.href = getNetSentinelUrl();
             } catch (error) {
                 console.error('Registration failed:', error);
-                setFormMessage('registerForm', 'We couldn\'t create your account. Try again in a moment.', 'error');
-                showToast('Registration failed. Please try again.', 'error');
+                const msg = (error && error.message && !error.message.startsWith('HTTP'))
+                    ? error.message
+                    : 'We couldn\'t create your account. Try again in a moment.';
+                setFormMessage('registerForm', msg, 'error');
+                showToast(msg, 'error');
                 setLoading('registerForm', false);
             }
         });

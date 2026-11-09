@@ -1,11 +1,14 @@
+import hashlib
+import hmac
 import json
 import os
+import secrets
 import time
 from urllib import error as urllib_error
 from urllib import parse as urllib_parse
 from urllib import request as urllib_request
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, redirect, request, send_from_directory, session
 
 try:
     from flask_cors import CORS
@@ -16,6 +19,8 @@ except ImportError:  # pragma: no cover
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 WEB_DIR = os.path.join(BASE_DIR, "web")
+DATA_DIR = os.path.join(BASE_DIR, "data")
+USERS_FILE = os.path.join(DATA_DIR, "users.json")
 JAVA_BACKEND_URL = os.environ.get("NETSENTINEL_JAVA_URL", "http://localhost:8080").rstrip("/")
 
 # NOTE: static_folder is None on purpose. Flask's automatic static route
@@ -23,6 +28,14 @@ JAVA_BACKEND_URL = os.environ.get("NETSENTINEL_JAVA_URL", "http://localhost:8080
 # Every static file is served explicitly by serve_frontend /
 # serve_netsentinel_app via send_from_directory below.
 app = Flask(__name__, static_folder=None)
+# Set SECRET_KEY on Render (Environment → SECRET_KEY) for stable logins.
+app.secret_key = os.environ.get("SECRET_KEY", "cybershield-dev-secret-key-change-me")
+app.config.update(
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SECURE=os.environ.get("SESSION_COOKIE_SECURE", "1") == "1",
+    PERMANENT_SESSION_LIFETIME=12 * 60 * 60,
+)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 DEMO_ALERTS = [
@@ -139,6 +152,62 @@ def _build_error(message, status_code=400):
     return jsonify({"error": message}), status_code
 
 
+# ===== Auth: salted-hashed password store (stdlib only) =====
+def _load_users():
+    try:
+        with open(USERS_FILE, encoding="utf-8") as fh:
+            data = json.load(fh)
+            return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def _save_users(users):
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(USERS_FILE, "w", encoding="utf-8") as fh:
+        json.dump(users, fh, indent=2)
+
+
+def _hash_password(password, salt=None):
+    salt = salt or secrets.token_hex(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), 120_000).hex()
+    return f"{salt}${digest}"
+
+
+def _verify_password(password, stored):
+    try:
+        salt, digest = stored.split("$", 1)
+    except (AttributeError, ValueError):
+        return False
+    candidate = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), 120_000).hex()
+    return hmac.compare_digest(candidate, digest)
+
+
+def _current_user():
+    email = session.get("user")
+    if not email:
+        return None
+    return _load_users().get(email)
+
+
+def _require_login():
+    """Server-side gate: anonymous visitors go to /login.html."""
+    if _current_user() is None:
+        return redirect("/login.html")
+    return None
+
+
+@app.after_request
+def _add_cache_headers(response):
+    # HTML should stay fresh; assets can be cached briefly (1h, no far-future surprises).
+    path = request.path or ""
+    if path.endswith((".css", ".js", ".svg", ".png", ".jpg", ".jpeg", ".webp", ".ttf", ".woff", ".woff2")):
+        response.headers.setdefault("Cache-Control", "public, max-age=3600")
+    elif path.startswith("/api/"):
+        response.headers.setdefault("Cache-Control", "no-store")
+    return response
+
+
 @app.route("/api/stats", methods=["GET", "OPTIONS"])
 def api_stats():
     if request.method == "OPTIONS":
@@ -253,15 +322,36 @@ def api_export():
     return csv, 200, {"Content-Type": "text/csv; charset=utf-8", "Content-Disposition": 'attachment; filename="netsentinel_report.csv"'}
 
 
+@app.route("/robots.txt")
+def robots_txt():
+    from flask import Response
+    return Response("User-agent: *\nAllow: /\n", mimetype="text/plain")
+
+
+@app.route("/favicon.ico")
+def favicon_route():
+    path = os.path.join(FRONTEND_DIR, "assets", "images", "favicon.svg")
+    if os.path.isfile(path):
+        return send_from_directory(os.path.dirname(path), "favicon.svg")
+    return _build_error("Not found", 404)
+
+
 @app.route("/api/auth/login", methods=["POST", "OPTIONS"])
 def api_login():
     if request.method == "OPTIONS":
         return "", 204
     payload = request.get_json(silent=True) or {}
-    email = (payload.get("email") or "").strip()
+    email = (payload.get("email") or "").strip().lower()
     password = (payload.get("password") or "").strip()
     if not email or not password:
         return _build_error("Email and password are required", 400)
+    users = _load_users()
+    record = users.get(email)
+    if not record or not _verify_password(password, record.get("pw_hash", "")):
+        return _build_error("Invalid email or password", 401)
+    session.clear()
+    session.permanent = True
+    session["user"] = email
     return jsonify({"status": "success", "user": email, "role": "admin"})
 
 
@@ -270,11 +360,48 @@ def api_register():
     if request.method == "OPTIONS":
         return "", 204
     payload = request.get_json(silent=True) or {}
-    email = (payload.get("email") or "").strip()
+    email = (payload.get("email") or "").strip().lower()
     password = (payload.get("password") or "").strip()
+    full_name = (payload.get("fullName") or "").strip()
     if not email or not password:
         return _build_error("Valid email and password are required", 400)
+    if "@" not in email or "." not in email:
+        return _build_error("Email looks invalid, please check it and try again", 400)
+    if len(password) < 8:
+        return _build_error("Password must be at least 8 characters", 400)
+    users = _load_users()
+    if email in users:
+        return _build_error("An account with this email already exists — try signing in", 409)
+    users[email] = {
+        "fullName": full_name,
+        "organization": (payload.get("organization") or "").strip(),
+        "pw_hash": _hash_password(password),
+        "created": time.strftime("%Y-%m-%d %H:%M:%S"),
+    }
+    try:
+        _save_users(users)
+    except OSError:
+        return _build_error("Could not save account, please try again", 500)
+    session.clear()
+    session.permanent = True
+    session["user"] = email
     return jsonify({"status": "success", "user": email})
+
+
+@app.route("/api/auth/logout", methods=["POST", "OPTIONS"])
+def api_logout():
+    if request.method == "OPTIONS":
+        return "", 204
+    session.clear()
+    return jsonify({"status": "logged_out"})
+
+
+@app.route("/api/auth/me")
+def api_me():
+    user = _current_user()
+    if user is None:
+        return _build_error("Not signed in", 401)
+    return jsonify({"status": "success", "user": session.get("user")})
 
 
 @app.route("/app/")
@@ -289,7 +416,13 @@ def serve_netsentinel_app(web_path="index.html"):
     same origin, so the landing-page login/register can redirect
     straight to the real app and /api/* calls keep working without
     CORS or cross-port wiring.
+
+    Requires a signed-in session (server-side gate) — anonymous
+    visitors are sent to /login.html.
     """
+    gate = _require_login()
+    if gate is not None:
+        return gate
     safe_path = os.path.normpath(web_path or "index.html")
     if safe_path in {"", "."}:
         safe_path = "index.html"
@@ -306,6 +439,11 @@ def serve_netsentinel_app(web_path="index.html"):
 @app.route("/")
 @app.route("/<path:path>")
 def serve_frontend(path="index.html"):
+    # The scanner needs a signed-in account too (mirrors the /app/ gate).
+    if (path or "") == "scanner.html":
+        gate = _require_login()
+        if gate is not None:
+            return gate
     safe_path = os.path.normpath(path)
     if safe_path in {"", "."}:
         safe_path = "index.html"

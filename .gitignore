@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.env
+SEVENTEEN31/
+*.zip
+*.log
+data/users.json
