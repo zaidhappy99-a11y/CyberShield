@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Scanner | CyberShield</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="nav-logo"><i class="fas fa-shield-halved"></i><span>CyberShield</span></div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/app/" class="nav-item app-link"><i class="fas fa-tachometer-alt"></i><span>NetSentinel App</span></a>
+            <a href="scanner.html" class="nav-item active"><i class="fas fa-search"></i><span>Scanner</span></a>
+            <a href="#" class="nav-item"><i class="fas fa-bug"></i><span>Vulnerabilities</span></a>
+            <a href="#" class="nav-item"><i class="fas fa-file-alt"></i><span>Reports</span></a>
+            <a href="#" class="nav-item"><i class="fas fa-users-cog"></i><span>Team</span></a>
+            <a href="#" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+        </nav>
+        <div class="sidebar-footer">
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-bar">
+            <button class="sidebar-toggle" id="sidebar-toggle"><i class="fas fa-bars"></i></button>
+            <div class="top-bar-search"><i class="fas fa-search"></i><input type="text" placeholder="Search..."></div>
+            <div class="top-bar-user">
+                <div class="user-info"><span class="user-name">Admin User</span><span class="user-email">admin@cybershield.com</span></div>
+                <div class="user-avatar"><img src="assets/images/avatar.svg" alt="User"></div>
+            </div>
+        </header>
+
+        <div class="dashboard-content">
+            <div class="page-header">
+                <h1>Security Scanner</h1>
+                <p>Scan your website for vulnerabilities and security issues</p>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="scan-form">
+                        <div class="form-group">
+                            <label for="targetUrl">Target URL</label>
+                            <div class="input-wrapper"><i class="fas fa-globe"></i><input type="url" id="targetUrl" placeholder="https://example.com" required></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Scan Type</label>
+                            <div class="scan-type-selector">
+                                <label class="scan-type-option active"><input type="radio" name="scanType" value="full" checked><i class="fas fa-search"></i><span>Full Scan</span></label>
+                                <label class="scan-type-option"><input type="radio" name="scanType" value="quick"><i class="fas fa-bolt"></i><span>Quick Scan</span></label>
+                                <label class="scan-type-option"><input type="radio" name="scanType" value="deep"><i class="fas fa-microscope"></i><span>Deep Scan</span></label>
+                            </div>
+                        </div>
+                        <button id="startScanBtn" class="btn btn-primary btn-block btn-large"><i class="fas fa-play"></i> Start Scan</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="scanResults" class="card" style="display: none;">
+                <div class="card-body">
+                    <div class="scan-results-header"><h2>Scan Results</h2><span id="scanStatusBadge" class="status-badge status-safe">Completed</span></div>
+                    <div class="results-summary">
+                        <div class="summary-card"><div class="summary-number" id="totalIssues">0</div><div class="summary-label">Total Issues</div></div>
+                        <div class="summary-card danger"><div class="summary-number" id="criticalIssues">0</div><div class="summary-label">Critical</div></div>
+                        <div class="summary-card warning"><div class="summary-number" id="highIssues">0</div><div class="summary-label">High Risk</div></div>
+                        <div class="summary-card info"><div class="summary-number" id="mediumIssues">0</div><div class="summary-label">Medium Risk</div></div>
+                    </div>
+                    <div id="issuesList" class="issues-list"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3>Scan History</h3><a href="#" class="view-all">View All</a></div>
+                <div class="card-body">
+                    <div class="history-list">
+                        <div class="history-item">
+                            <div class="history-info"><h4>example.com</h4><span>Full Scan</span></div>
+                            <div class="history-status"><span class="status-badge status-success">Completed</span></div>
+                            <div class="history-date">2 hours ago</div>
+                        </div>
+                        <div class="history-item">
+                            <div class="history-info"><h4>api.example.com</h4><span>Quick Scan</span></div>
+                            <div class="history-status"><span class="status-badge status-danger">Threats Found</span></div>
+                            <div class="history-date">5 hours ago</div>
+                        </div>
+                        <div class="history-item">
+                            <div class="history-info"><h4>blog.example.com</h4><span>Deep Scan</span></div>
+                            <div class="history-status"><span class="status-badge status-success">Completed</span></div>
+                            <div class="history-date">1 day ago</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/scanner.js"></script>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
