@@ -40,9 +40,11 @@ const API = {
       cfg.body = JSON.stringify(cfg.body);
     }
 
-    if (BACKEND_ONLINE === null) await checkBackend();
+    // Auth endpoints skip the pre-flight /stats probe (saves ~7s on slow
+    // networks and avoids the "nothing happens" feeling on this machine).
+    if (BACKEND_ONLINE === null && !endpoint.startsWith('/auth/')) await checkBackend();
 
-    if (BACKEND_ONLINE) {
+    if (BACKEND_ONLINE || endpoint.startsWith('/auth/')) {
       const res = await fetch(`${API_BASE_URL}${endpoint}`, { ...cfg, credentials: 'same-origin' });
       if (!res.ok) {
         let msg = 'HTTP ' + res.status;

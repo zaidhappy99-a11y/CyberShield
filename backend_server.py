@@ -590,8 +590,12 @@ def serve_frontend(path="index.html"):
         home = getHomeForUser()
         if home is not None:
             return home
-    # The scanner and NetSentinel pages need a signed-in account.
-    if (path or "") in ("scanner.html", "netsentinel.html"):
+    # Pages that need a signed-in account.
+    if (path or "") in ("scanner.html", "netsentinel.html", "404.html"):
+        gate = _require_login()
+        if gate is not None:
+            return gate
+    if (path or "") in ("vulnerabilities.html", "reports.html", "team.html", "settings.html"):
         gate = _require_login()
         if gate is not None:
             return gate
