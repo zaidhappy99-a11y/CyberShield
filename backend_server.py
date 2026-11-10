@@ -551,6 +551,44 @@ def api_logout():
     return jsonify({"status": "logged_out"})
 
 
+@app.route("/api/clients", methods=["GET", "DELETE", "OPTIONS"])
+def api_clients():
+    if request.method == "OPTIONS":
+        return "", 204
+    if _current_user() is None:
+        return _build_error("Not signed in", 401)
+    
+    if request.method == "DELETE":
+        payload = request.get_json(silent=True) or {}
+        email = (payload.get("email") or request.args.get("email") or "").strip().lower()
+        if not email:
+            return _build_error("Email is required", 400)
+        users = _load_users()
+        if email not in users:
+            return _build_error("No account found for that email", 404)
+        if email == session.get("user"):
+            return _build_error("You can't delete the account you're signed in with", 400)
+        del users[email]
+        try:
+            _save_users(users)
+        except OSError:
+            return _build_error("Could not delete that account", 500)
+        return jsonify({"status": "deleted", "email": email})
+    
+    users = _load_users()
+    client_list = []
+    for email, record in users.items():
+        client_list.append({
+            "email": email,
+            "fullName": record.get("fullName", ""),
+            "organization": record.get("organization", ""),
+            "created": record.get("created", ""),
+            "role": "Admin" if email == session.get("user") else "Member"
+        })
+    client_list.sort(key=lambda c: c["email"])
+    return jsonify({"status": "success", "clients": client_list})
+
+
 @app.route("/api/auth/me")
 def api_me():
     user = _current_user()
@@ -595,7 +633,7 @@ def serve_frontend(path="index.html"):
         gate = _require_login()
         if gate is not None:
             return gate
-    if (path or "") in ("vulnerabilities.html", "reports.html", "team.html", "settings.html"):
+    if (path or "") in ("vulnerabilities.html", "reports.html", "team.html", "settings.html", "clients.html"):
         gate = _require_login()
         if gate is not None:
             return gate

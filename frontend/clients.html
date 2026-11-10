@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clients | CyberShield</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .client-table { width: 100%; border-collapse: collapse; }
+        .client-table th, .client-table td { text-align: left; padding: .75rem .6rem; border-bottom: 1px solid var(--border); font-size: .9rem; }
+        .client-table th { font-size: .75rem; text-transform: uppercase; color: var(--text-light); letter-spacing: .04em; }
+        .client-table tr:hover td { background: var(--bg); }
+        .client-you { font-size: .7rem; background: var(--primary-soft); color: var(--primary); padding: .15rem .5rem; border-radius: 999px; margin-left: .5rem; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header"><a class="nav-logo" href="scanner.html"><i class="fas fa-shield-halved"></i><span>CyberShield</span></a><div class="sidebar-user"><strong class="sidebar-user-name">You</strong><small class="sidebar-user-email">…</small></div></div>
+        <nav class="sidebar-nav">
+            <a href="scanner.html" class="nav-item"><i class="fas fa-search"></i><span>Scanner</span></a>
+            <a href="netsentinel.html" class="nav-item"><i class="fas fa-tachometer-alt"></i><span>NetSentinel</span></a>
+            <a href="vulnerabilities.html" class="nav-item"><i class="fas fa-bug"></i><span>Vulnerabilities</span></a>
+            <a href="reports.html" class="nav-item"><i class="fas fa-file-alt"></i><span>Reports</span></a>
+            <a href="team.html" class="nav-item"><i class="fas fa-users-cog"></i><span>Team</span></a>
+            <a href="clients.html" class="nav-item active"><i class="fas fa-address-book"></i><span>Clients</span></a>
+            <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+        </nav>
+        <div class="sidebar-footer"><a href="#" class="nav-item logout-link"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a></div>
+    </aside>
+    <main class="main-content">
+        <header class="top-bar">
+            <button class="sidebar-toggle" id="sidebar-toggle"><i class="fas fa-bars"></i></button>
+            <div class="top-bar-search"><i class="fas fa-search"></i><input type="text" id="topBarSearch" placeholder="Filter clients…" aria-label="Filter"></div>
+            <div class="top-bar-user">
+                <div class="user-info"><span class="user-name">Loading…</span><span class="user-email">…</span></div>
+                <div class="user-avatar"><img src="assets/images/avatar.svg" alt="User"></div>
+                <a class="btn btn-outline btn-small logout-btn" href="login.html" aria-label="Sign out"><i class="fas fa-sign-out-alt"></i></a>
+            </div>
+        </header>
+        <div class="dashboard-content">
+            <div class="page-header"><h1>Clients</h1><p>Everyone registered in this workspace. Live from the server.</p></div>
+            <div class="card">
+                <div class="card-header"><h3>Registered accounts</h3><button class="btn btn-outline btn-small" id="refreshClientsBtn"><i class="fas fa-rotate"></i> Refresh</button></div>
+                <div class="card-body">
+                    <div id="clientsLoading" class="scanner-hint">Loading…</div>
+                    <table class="client-table" id="clientsTable" hidden>
+                        <thead><tr><th>Name</th><th>Email</th><th>Organization</th><th>Joined</th><th>Role</th><th></th></tr></thead>
+                        <tbody id="clientsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="assets/js/sidebar.js"></script>
+    <script>
+    (function () {
+        const body = document.getElementById('clientsBody');
+        const table = document.getElementById('clientsTable');
+        const loading = document.getElementById('clientsLoading');
+        const you = localStorage.getItem('netsentinel_user') || '';
+        let all = [];
+        const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x27;'}[c]));
+        const render = (list) => {
+            if (!list.length) { table.hidden = true; loading.textContent = 'No accounts found.'; loading.hidden = false; return; }
+            table.hidden = false; loading.hidden = true;
+            body.innerHTML = list.map(c => `
+                <tr>
+                    <td>${esc(c.fullName || '—')}${c.email === you ? '<span class="client-you">YOU</span>' : ''}</td>
+                    <td>${esc(c.email)}</td>
+                    <td>${esc(c.organization || '—')}</td>
+                    <td>${esc(c.created || '—')}</td>
+                    <td>${esc(c.role)}</td>
+                    <td>${c.email === you ? '' : `<button class="btn btn-outline btn-small" data-email="${esc(c.email)}"><i class="fas fa-trash-can"></i></button>`}</td>
+                </tr>`).join('');
+            body.querySelectorAll('button').forEach(btn => btn.addEventListener('click', async () => {
+                if (!confirm('Delete ' + btn.dataset.email + '?')) return;
+                const res = await fetch('/api/clients', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ email: btn.dataset.email }) });
+                if (res.ok) load(); else alert((await res.json()).error || 'Could not delete');
+            }));
+        };
+        const load = async () => {
+            try {
+                const res = await fetch('/api/clients', { credentials: 'same-origin' });
+                if (!res.ok) throw new Error('load');
+                const data = await res.json();
+                all = data.clients || [];
+                render(all);
+            } catch (e) {
+                loading.textContent = 'Could not load clients from the server.';
+            }
+        };
+        document.getElementById('refreshClientsBtn').addEventListener('click', load);
+        document.getElementById('topBarSearch').addEventListener('input', function () {
+            const q = this.value.trim().toLowerCase();
+            render(all.filter(c => (c.email + ' ' + c.fullName + ' ' + c.organization).toLowerCase().includes(q)));
+        });
+        load();
+    })();
+    </script>
+</body>
+</html>
