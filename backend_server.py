@@ -225,7 +225,9 @@ def _add_cache_headers(response):
     # HTML should stay fresh; assets can be cached briefly (1h, no far-future surprises).
     path = request.path or ""
     if path.endswith((".css", ".js", ".svg", ".png", ".jpg", ".jpeg", ".webp", ".ttf", ".woff", ".woff2")):
-        response.headers.setdefault("Cache-Control", "public, max-age=3600")
+        # Always revalidate: a stale cached app.js once broke the dashboard
+        # for a whole deploy cycle. no-cache means "check with server" (fresh or 304).
+        response.headers.setdefault("Cache-Control", "no-cache, must-revalidate")
     elif path.startswith("/api/"):
         response.headers.setdefault("Cache-Control", "no-store")
     return response
