@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NetSentinel | Network Intrusion Detection & SOC Dashboard</title>
+  <link rel="stylesheet" href="assets/netsentinel/css/style.css">
+  <link rel="stylesheet" href="assets/netsentinel/css/components.css">
+  <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+
+  <!-- Top SOC Navigation Bar -->
+  <header class="soc-navbar">
+    <div class="brand-wrapper">
+      <div class="brand-logo">NS</div>
+      <div class="brand-title">Net<span>Sentinel</span></div>
+      <span class="brand-badge">Hybrid NIDS v2.0</span>
+    </div>
+
+    <div class="nav-actions">
+      <div class="engine-status-pill" id="engineStatusPill">
+        <span class="status-dot"></span>
+        <span id="engineStatusText">DETECTOR ACTIVE</span>
+      </div>
+
+      <button class="btn btn-outline" onclick="location.href='scanner.html'">
+        Scanner
+      </button>
+
+      <button class="btn btn-primary" id="btnExportReport" onclick="exportCsvReport()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Export Forensic Report
+      </button>
+
+      <button class="btn btn-outline" id="btnClearAlerts" onclick="clearAlertHistory()">
+        Clear Logs
+      </button>
+
+      <button class="btn btn-outline" id="btnLogout" onclick="logoutNetSentinel()">
+        Logout
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Dashboard Container -->
+  <main class="dashboard-container">
+
+    <!-- KPI Metric Cards Grid -->
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">
+          <span>Packets Inspected</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        </div>
+        <div class="kpi-value" id="kpiPackets">0</div>
+        <div class="kpi-subtext">Real-time packet capture stream</div>
+      </div>
+
+      <div class="kpi-card warning">
+        <div class="kpi-label">
+          <span>Security Alerts</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </div>
+        <div class="kpi-value" id="kpiAlerts">0</div>
+        <div class="kpi-subtext" id="kpiAlertsBreakdown">0 Crit · 0 High · 0 Med · 0 Low</div>
+      </div>
+
+      <div class="kpi-card danger">
+        <div class="kpi-label">
+          <span>Threat Level</span>
+          <span class="threat-badge threat-NORMAL" id="kpiThreatBadge">NORMAL</span>
+        </div>
+        <div class="kpi-value" id="kpiThreatScore">0<span style="font-size:1.1rem; color:var(--text-muted);">/100</span></div>
+        <div class="kpi-subtext">Aggregate network severity index</div>
+      </div>
+
+      <div class="kpi-card success">
+        <div class="kpi-label">
+          <span>Active Quarantines</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        </div>
+        <div class="kpi-value" id="kpiQuarantine">1</div>
+        <div class="kpi-subtext">Automated firewall IP blocks</div>
+      </div>
+    </section>
+
+    <!-- Main Workspace Grid -->
+    <div class="main-grid">
+
+      <!-- Left Column: Attack Simulator & Alerts Stream -->
+      <div style="display:flex; flex-direction:column; gap:1.5rem;">
+
+        <!-- Attack Simulator Toolbar Panel -->
+        <section class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              <span>Cyber Attack Simulation Console</span>
+            </div>
+            <span style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">Test detection rules on demand</span>
+          </div>
+
+          <div class="sim-toolbar">
+            <button class="sim-btn" onclick="triggerSimulation('portscan')">
+              <span>⚡</span> SYN Port Scan
+            </button>
+            <button class="sim-btn danger" onclick="triggerSimulation('dos')">
+              <span>💥</span> DoS SYN Flood
+            </button>
+            <button class="sim-btn" onclick="triggerSimulation('sqli')">
+              <span>💉</span> SQL Injection
+            </button>
+            <button class="sim-btn" onclick="triggerSimulation('xss')">
+              <span>🛡️</span> XSS Exploit
+            </button>
+            <button class="sim-btn" onclick="triggerSimulation('traversal')">
+              <span>📂</span> Path Traversal
+            </button>
+            <button class="sim-btn" onclick="triggerSimulation('scanner')">
+              <span>🤖</span> Scanner Fingerprint
+            </button>
+            <button class="sim-btn" onclick="triggerSimulation('bruteforce')">
+              <span>🔑</span> SSH Brute Force
+            </button>
+          </div>
+        </section>
+
+        <!-- Live Intrusion Feed Table Panel -->
+        <section class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+              <span>Live Intrusion Detection Log</span>
+            </div>
+
+            <div class="panel-controls">
+              <!-- Filter Severity -->
+              <select id="severityFilter" onchange="fetchAlerts()" style="background:var(--bg-card); color:var(--text-main); border:1px solid var(--border-subtle); padding:0.3rem 0.6rem; border-radius:6px; font-size:0.78rem;">
+                <option value="ALL">All Severities</option>
+                <option value="CRITICAL">Critical</option>
+                <option value="HIGH">High</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="LOW">Low</option>
+              </select>
+
+              <input type="text" id="alertSearchInput" placeholder="Filter by IP or Attack..." onkeyup="filterTableSearch()" style="background:var(--bg-card); color:var(--text-main); border:1px solid var(--border-subtle); padding:0.3rem 0.6rem; border-radius:6px; font-size:0.78rem; width:160px;">
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="soc-table" id="alertsTable">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Severity</th>
+                  <th>Attack Type</th>
+                  <th>Source IP</th>
+                  <th>Target Port</th>
+                  <th>Protocol</th>
+                  <th>Action</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody id="alertsTableBody">
+                <!-- Injected via JavaScript -->
+                <tr>
+                  <td colspan="8" style="text-align:center; color:var(--text-muted); padding:2rem;">
+                    Monitoring active. Trigger a simulation or send traffic to populate telemetry.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Right Column: Radar, Telemetry & Active Defense -->
+      <div style="display:flex; flex-direction:column; gap:1.5rem;">
+
+        <!-- 360-degree Cyber Radar Panel -->
+        <section class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M16.2 7.8l-2 6.3-6.4 2.1 2.1-6.4z"></path></svg>
+              <span>Threat Space Radar</span>
+            </div>
+            <span style="font-size:0.7rem; color:var(--cyber-cyan); font-family:var(--font-mono);">SWEEP: 3.5s</span>
+          </div>
+
+          <div class="radar-wrapper">
+            <div class="radar-screen">
+              <div class="radar-ring ring-1"></div>
+              <div class="radar-ring ring-2"></div>
+              <div class="radar-ring ring-3"></div>
+              <div class="radar-crosshair-h"></div>
+              <div class="radar-crosshair-v"></div>
+              <div class="radar-sweep"></div>
+              <div class="radar-blip blip-1" title="Active Scanner Threat"></div>
+              <div class="radar-blip blip-2" title="Port Scan Probing"></div>
+              <div class="radar-blip blip-3" title="SYN Flood Source"></div>
+            </div>
+
+            <div class="radar-telemetry">
+              <span>SCAN RANGE: <strong>SUBNET /24</strong></span>
+              <span>PROBES: <strong id="radarProbesCount">ACTIVE</strong></span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Protocol Distribution Panel -->
+        <section class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+              <span>Protocol Breakdown</span>
+            </div>
+          </div>
+
+          <div class="stats-list" id="protocolStatsList">
+            <!-- Injected via JavaScript -->
+          </div>
+        </section>
+
+        <!-- Top Attacker IPs Leaderboard Panel -->
+        <section class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              <span>Top Malicious IPs</span>
+            </div>
+          </div>
+
+          <div class="stats-list" id="topAttackersList">
+            <!-- Injected via JavaScript -->
+          </div>
+        </section>
+
+        <!-- Active Defense / Windows Firewall Quarantine Panel -->
+        <section class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+              <span>Windows Firewall Active Defense</span>
+            </div>
+            <span class="brand-badge" style="background:rgba(0,245,155,0.1); border-color:var(--cyber-green); color:var(--cyber-green);">
+              🛡️ IPS ENFORCED
+            </span>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:var(--text-muted); padding:0 0.2rem;">
+            <span>Inbound Rules: <strong id="firewallRuleCount" style="color:var(--cyber-cyan);">2 Active</strong></span>
+            <button class="btn btn-primary btn-sm" onclick="downloadFirewallBatch()" style="font-size:0.7rem; padding:0.2rem 0.5rem;" title="Download elevated .bat to apply all rules to Windows Defender Firewall">
+              ⬇️ Export Firewall (.bat)
+            </button>
+          </div>
+
+          <div class="quarantine-list" id="quarantineList">
+            <!-- Injected via JavaScript -->
+          </div>
+
+          <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+            <input type="text" id="manualBlockIp" placeholder="Block IP e.g. 192.168.1.50" style="flex:1; background:var(--bg-darkest); color:var(--text-main); border:1px solid var(--border-subtle); padding:0.4rem 0.6rem; border-radius:6px; font-size:0.78rem; font-family:var(--font-mono);">
+            <button class="btn btn-danger btn-sm" onclick="submitManualBlock()">Quarantine & Block</button>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Deep Packet Inspection Forensic Modal -->
+  <div class="modal-overlay" id="forensicModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title" id="modalAlertTitle">Incident Forensic Inspection</div>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div><strong>Alert ID:</strong> <span id="modalAlertId" class="mono-ip"></span></div>
+        <div><strong>Timestamp:</strong> <span id="modalTimestamp"></span></div>
+        <div><strong>Flow:</strong> <span id="modalFlow" class="mono-ip"></span> (<span id="modalProtocol"></span>)</div>
+        <div><strong>Severity:</strong> <span id="modalSeverity" class="severity-pill"></span></div>
+        <div><strong>Attack Classification:</strong> <span id="modalAttackType"></span></div>
+        <div><strong>Detection Description:</strong> <span id="modalDescription"></span></div>
+        
+        <div><strong>Payload Preview / Exploit Fingerprint:</strong></div>
+        <div class="code-block" id="modalPayload"></div>
+
+        <div><strong>Remediation Recommendation:</strong></div>
+        <div id="modalRecommendation" style="color:var(--cyber-green); font-size:0.82rem;"></div>
+      </div>
+      <div style="padding:1rem 1.5rem; background:rgba(13,19,34,0.9); display:flex; justify-content:flex-end; gap:0.75rem;">
+        <button class="btn btn-danger btn-sm" id="modalQuarantineBtn" onclick="quarantineFromModal()">Quarantine Source IP</button>
+        <button class="btn btn-outline btn-sm" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- SOC Frontend Logic -->
+  <script src="assets/netsentinel/js/app.js"></script>
+</body>
+</html>

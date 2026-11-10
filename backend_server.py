@@ -564,31 +564,8 @@ def api_me():
 @app.route("/web/")
 @app.route("/web/<path:web_path>")
 def serve_netsentinel_app(web_path="index.html"):
-    """Serve the NetSentinel SOC app (web/ folder) inside the same unified server.
-
-    The marketing site lives at / (frontend/), the NetSentinel app is
-    mounted at /app/ (and at the legacy /web/ alias). Both share the
-    same origin, so the landing-page login/register can redirect
-    straight to the real app and /api/* calls keep working without
-    CORS or cross-port wiring.
-
-    Requires a signed-in session (server-side gate) — anonymous
-    visitors are sent to /login.html.
-    """
-    gate = _require_login()
-    if gate is not None:
-        return gate
-    safe_path = os.path.normpath(web_path or "index.html")
-    if safe_path in {"", "."}:
-        safe_path = "index.html"
-    candidate = os.path.normpath(os.path.join(WEB_DIR, safe_path))
-    if os.path.commonpath([WEB_DIR, candidate]) != WEB_DIR:
-        return _build_error("Forbidden", 403)
-    if os.path.isfile(candidate):
-        # Serve with the original forward-slash URL path: send_from_directory
-        # 404s on Windows when handed a normpath() (backslash) path.
-        return send_from_directory(WEB_DIR, web_path or "index.html")
-    return send_from_directory(WEB_DIR, "index.html")
+    """Legacy /app/ mount — NetSentinel now lives at /netsentinel.html inside CyberShield."""
+    return redirect("/netsentinel.html", code=302)
 
 
 @app.route("/v1/<path:path>")
@@ -613,8 +590,8 @@ def serve_frontend(path="index.html"):
         home = getHomeForUser()
         if home is not None:
             return home
-    # The scanner needs a signed-in account too (mirrors the /app/ gate).
-    if (path or "") == "scanner.html":
+    # The scanner and NetSentinel pages need a signed-in account.
+    if (path or "") in ("scanner.html", "netsentinel.html"):
         gate = _require_login()
         if gate is not None:
             return gate

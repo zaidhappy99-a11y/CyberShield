@@ -5,13 +5,14 @@
 
 // ===== NetSentinel App URL =====
 // Landing site (frontend/) -> NetSentinel SOC app (web/ folder).
-// Over HTTP the unified server mounts the app at /app/. Opened
+// Over HTTP the unified server mounts the app at /netsentinel.html. Opened
 // directly as files, it lives in ../web/index.html.
 function getNetSentinelUrl() {
+    // NetSentinel lives inside CyberShield now — one site, one app.
     if (window.location.protocol === 'file:') {
-        return '../web/index.html';
+        return 'netsentinel.html';
     }
-    return '/app/';
+    return '/netsentinel.html';
 }
 
 function getScannerUrl() {
@@ -319,7 +320,7 @@ function initAuthForms() {
 // ===== Landing page: already logged in -> offer the NetSentinel app =====
 function initLandingNav() {
     // Keep scanner/sidebar app links working when opened as files.
-    document.querySelectorAll('a[href="/app/"]').forEach((a) => {
+    document.querySelectorAll('a[href="/netsentinel.html"]').forEach((a) => {
         if (window.location.protocol === 'file:') a.href = '../web/index.html';
     });
     const currentPage = window.location.pathname.split('/').pop();
@@ -357,7 +358,7 @@ function initLandingNav() {
 
 // ===== Dashboard Data Loading (deprecated) =====
 // The old landing-site dashboard page was removed (it errored). The
-// NetSentinel SOC app at /app/ loads its own telemetry via web/js/app.js,
+// NetSentinel SOC app at /netsentinel.html loads its own telemetry via web/js/app.js,
 // so there is nothing to load here. Kept as a no-op for compatibility.
 async function initDashboard() {
     return;
