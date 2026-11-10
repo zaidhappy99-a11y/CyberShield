@@ -44,6 +44,7 @@
                         <div class="form-group">
                             <label for="targetUrl">Target URL</label>
                             <div class="input-wrapper"><i class="fas fa-globe"></i><input type="url" id="targetUrl" placeholder="https://example.com" required></div>
+                            <p class="field-hint">Scan any public website — yours, a competitor's landing page, or a link a friend sent you.</p>
                         </div>
                         <div class="form-group">
                             <label>Scan Type</label>
@@ -54,7 +55,27 @@
                             </div>
                         </div>
                         <button id="startScanBtn" class="btn btn-primary btn-block btn-large"><i class="fas fa-play"></i> Start Scan</button>
+                        <button id="safetyCheckBtn" class="btn btn-outline btn-block btn-large" style="margin-top:.75rem"><i class="fas fa-clipboard-check"></i> Website Safety Check (any URL)</button>
                     </div>
+                </div>
+            </div>
+
+            <!-- Website Safety Report (passive check for any public site) -->
+            <div id="safetyReport" class="card" style="display: none;">
+                <div class="card-body">
+                    <div class="scan-results-header"><h2>Website Safety Report</h2><span id="safetyGrade" class="status-badge status-success">Grade —</span></div>
+                    <div class="safety-meta">
+                        <div><strong>URL:</strong> <span id="safetyUrl" class="mono-ip"></span></div>
+                        <div><strong>Final address (after redirects):</strong> <span id="safetyFinal" class="mono-ip"></span></div>
+                        <div><strong>HTTP status:</strong> <span id="safetyStatus"></span> &nbsp;·&nbsp; <strong>HTTPS:</strong> <span id="safetyHttps"></span> &nbsp;·&nbsp; <strong>Type:</strong> <span id="safetyType"></span></div>
+                    </div>
+                    <div class="results-summary" style="margin-top:1rem">
+                        <div class="summary-card"><div class="summary-number" id="safetyScore">—</div><div class="summary-label">Safety score /100</div></div>
+                        <div class="summary-card warning"><div class="summary-number" id="safetyMissing">0</div><div class="summary-label">Missing headers</div></div>
+                        <div class="summary-card danger"><div class="summary-number" id="safetyWarnings">0</div><div class="summary-label">Warnings</div></div>
+                    </div>
+                    <div id="safetyFindings" class="issues-list"></div>
+                    <p class="contact-note" style="margin-top:.75rem"><i class="fas fa-circle-info"></i> Passive check only — we fetch the page like a visitor would. Nothing is attacked or exploited, so this is safe for sites you don't own.</p>
                 </div>
             </div>
 

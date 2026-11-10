@@ -318,6 +318,136 @@ def api_simulate():
     return jsonify({"status": "simulation_triggered", "type": sim_type})
 
 
+@app.route("/api/website_scan", methods=["POST", "OPTIONS"])
+def api_website_scan():
+    """Passive safety check for ANY public URL (no active attacking).
+
+    Fetches the page once, like visiting it, and reports: HTTP status,
+    final URL after redirects, HTTPS, security response headers, and
+    cookie flags. Blocks private/internal targets (SSRF guard).
+    """
+    if request.method == "OPTIONS":
+        return "", 204
+    payload = request.get_json(silent=True) or {}
+    raw_url = (payload.get("url") or "").strip()
+    if not raw_url:
+        return _build_error("Please enter a URL", 400)
+    if not raw_url.startswith(("http://", "https://")):
+        raw_url = "https://" + raw_url
+
+    try:
+        parsed = urllib_parse.urlparse(raw_url)
+    except ValueError:
+        return _build_error("That URL is not valid", 400)
+    host = (parsed.hostname or "").lower().rstrip(".")
+    if not host or "." not in host and host not in ("localhost",):
+        pass  # single-label hosts are still fine to validate per rules below
+    # SSRF guard: block loopback/private/reserved hosts
+    _private_patterns = [
+        "localhost", "127.", "10.", "192.168.", "169.254.", "0.0.0.0", "::1", "[::1]",
+        "100.64.", "172.16.", "172.17.", "172.18.", "172.19.", "172.2", "172.30.", "172.31.",
+        "metadata.google", "169.254.169.254",
+    ]
+    if any(host == p or host.startswith(p) or host.endswith(".local") or host.endswith(".internal") or host.endswith(".lan") for p in _private_patterns):
+        return _build_error("That looks like a private/internal address — the safety check only scans public sites", 400)
+
+    missing_headers = []
+    # Critical security headers
+    header_checks = [
+        ("strict-transport-security", "Strict-Transport-Security (forces HTTPS)"),
+        ("content-security-policy", "Content-Security-Policy (blocks injected scripts)"),
+        ("x-frame-options", "X-Frame-Options (stops clickjacking)"),
+        ("x-content-type-options", "X-Content-Type-Options (stops mime sniffing)"),
+        ("referrer-policy", "Referrer-Policy (controls referrer data)"),
+        ("permissions-policy", "Permissions-Policy (controls camera/mic/geolocation)"),
+    ]
+
+    req = urllib_request.Request(raw_url, headers={
+        "User-Agent": "Mozilla/5.0 (compatible; CyberShieldSafetyCheck/1.0; +https://cybershield.io)",
+        "Accept": "text/html,application/xhtml+xml",
+    })
+    redirects = []
+    status = None
+    final_url = raw_url
+    try:
+        with urllib_request.urlopen(req, timeout=8) as r:
+            status = r.status
+            final_url = r.geturl()
+            redirects = list(getattr(r, "redirects", []) or [])
+            # urllib folds redirect history into the response object differently
+            headers = {k.lower(): v for k, v in r.headers.items()}
+            cookies = r.headers.get_all("Set-Cookie") or []
+            content_type = r.headers.get("Content-Type", "")
+            cl = r.headers.get("Content-Length")
+            try:
+                content_len = int(cl) if cl else len(r.read(256 * 1024))
+            except Exception:
+                content_len = None
+    except urllib_error.HTTPError as e:
+        headers = {k.lower(): v for k, v in e.headers.items()} if e.headers else {}
+        cookies = e.headers.get_all("Set-Cookie") if e.headers else []
+        status = e.code
+        final_url = e.geturl() or raw_url
+        content_type = e.headers.get("Content-Type", "") if e.headers else ""
+        content_len = None
+    except Exception:
+        return _build_error("Couldn't reach that site — check the URL and that the site is online", 502)
+
+    cookie_flags = []
+    for cookie in cookies or []:
+        flag_str = "; ".join(p.strip() for p in cookie.split(";")[1:]) or "(no flags)"
+        name = cookie.split("=", 1)[0].strip()
+        cookie_flags.append({"name": name[:60], "flags": flag_str[:200]})
+
+    for header, label in header_checks:
+        if header not in headers:
+            missing_headers.append(label)
+
+    warnings = []
+    if parsed.scheme == "http":
+        warnings.append("Site is served over plain HTTP — traffic can be intercepted")
+    for c in cookie_flags:
+        flags = c["flags"].lower()
+        if "secure" not in flags:
+            warnings.append(f"Cookie '{c['name']}' missing Secure flag")
+        if "httponly" not in flags:
+            warnings.append(f"Cookie '{c['name']}' missing HttpOnly flag (readable by scripts)")
+        if "samesite" not in flags:
+            warnings.append(f"Cookie '{c['name']}' missing SameSite flag (CSRF protection)")
+
+    score = max(0, 100 - len(missing_headers) * 15 - len(warnings) * 8)
+    if raw_url.startswith("https:"):
+        https_ok = True
+    else:
+        https_ok = False
+    if score >= 85:
+        grade = "A"
+    elif score >= 70:
+        grade = "B"
+    elif score >= 55:
+        grade = "C"
+    elif score >= 35:
+        grade = "D"
+    else:
+        grade = "F"
+
+    return jsonify({
+        "status": "ok",
+        "url": raw_url,
+        "final_url": final_url,
+        "http_status": status,
+        "https": https_ok,
+        "content_type": content_type,
+        "content_length": content_len,
+        "missing_security_headers": missing_headers,
+        "cookies": cookie_flags,
+        "warnings": warnings,
+        "score": score,
+        "grade": grade,
+        "redirect_count": len(redirects),
+    })
+
+
 @app.route("/api/firewall/status", methods=["GET", "OPTIONS"])
 def api_firewall_status():
     if request.method == "OPTIONS":
@@ -459,6 +589,12 @@ def serve_netsentinel_app(web_path="index.html"):
         # 404s on Windows when handed a normpath() (backslash) path.
         return send_from_directory(WEB_DIR, web_path or "index.html")
     return send_from_directory(WEB_DIR, "index.html")
+
+
+@app.route("/v1/<path:path>")
+def ignore_v1(path):
+    # Browser extensions/AI tools poll this — don't return the landing page for it
+    return _build_error("Not found", 404)
 
 
 @app.route("/")

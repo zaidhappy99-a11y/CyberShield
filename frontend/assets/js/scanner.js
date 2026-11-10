@@ -3,6 +3,74 @@
 // Connected to NetSentinel Java Backend
 // ========================================
 
+// ===== Website Safety Check (passive — any public URL) =====
+document.getElementById('safetyCheckBtn')?.addEventListener('click', async function () {
+    const urlInput = document.getElementById('targetUrl');
+    let url = urlInput?.value.trim();
+    if (!url) {
+        showToast('Enter a URL first', 'error');
+        return;
+    }
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    const report = document.getElementById('safetyReport');
+    const btn = this;
+    const original = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch spin"></i> Checking…';
+    try {
+        const res = await fetch((window.location.protocol === 'file:' ? 'http://localhost:8080' : '') + '/api/website_scan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ url })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            showToast(data.error || 'Safety check failed', 'error');
+            return;
+        }
+        renderSafetyReport(data, url);
+        report.style.display = 'block';
+        report.scrollIntoView({ behavior: 'smooth' });
+        showToast('Safety check complete', 'success');
+    } catch (e) {
+        console.error('Safety check failed:', e);
+        showToast('Could not reach that site — is it online?', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = original;
+    }
+});
+
+function renderSafetyReport(data, url) {
+    document.getElementById('safetyUrl').textContent = data.url;
+    document.getElementById('safetyFinal').textContent = data.final_url;
+    document.getElementById('safetyStatus').textContent = data.http_status;
+    document.getElementById('safetyHttps').textContent = data.https ? 'Yes' : 'No';
+    document.getElementById('safetyType').textContent = (data.content_type || 'unknown').split(';')[0];
+    document.getElementById('safetyScore').textContent = data.score;
+    document.getElementById('safetyMissing').textContent = (data.missing_security_headers || []).length;
+    document.getElementById('safetyWarnings').textContent = (data.warnings || []).length;
+    const gradeEl = document.getElementById('safetyGrade');
+    gradeEl.textContent = 'Grade ' + data.grade;
+    gradeEl.className = 'status-badge ' + (['A', 'B'].includes(data.grade) ? 'status-success' : data.grade === 'C' ? 'status-safe' : 'status-danger');
+
+    const findings = document.getElementById('safetyFindings');
+    findings.innerHTML = '';
+    const item = (title, severity, desc) => {
+        const el = document.createElement('div');
+        el.className = 'issue-item';
+        el.innerHTML = `<div class="issue-info"><h4>${title}</h4><span class="issue-severity ${severity}">${severity.toUpperCase()}</span></div><p class="issue-description">${desc}</p>`;
+        findings.appendChild(el);
+    };
+    (data.missing_security_headers || []).forEach(h => item('Missing: ' + h, 'medium', 'This header helps protect visitors. Your developer can add it — it is usually a one-line config change.'));
+    (data.warnings || []).forEach(w => item(w, 'high', 'Detected on this site. Worth fixing if you own it.'));
+    (data.cookies || []).forEach(c => item(`Cookie: ${c.name}`, 'low', 'Flags: ' + c.flags));
+    if (!findings.children.length) {
+        findings.innerHTML = '<div class="issue-item"><div class="issue-info"><h4>Clean report</h4><span class="issue-severity low">PASS</span></div><p class="issue-description">No missing headers or cookie problems detected.</p></div>';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initScanForm();
 });
