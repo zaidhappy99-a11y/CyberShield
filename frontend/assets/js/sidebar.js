@@ -20,6 +20,27 @@
     return displayName(email);
   }
 
+  function applyRoleVisibility() {
+    // The role lives server-side (in ADMIN_EMAILS). Read it from /api/auth/me so
+    // sessions created before this feature still see/hides the Clients link correctly.
+    var fallbackRole = 'member';
+    try { fallbackRole = localStorage.getItem('netsentinel_role') || fallbackRole; } catch (e) { /* ignore */ }
+    var apply = function (role) {
+      var isAdmin = role === 'admin';
+      document.querySelectorAll('a[href="clients.html"]').forEach(function (a) {
+        a.style.display = isAdmin ? '' : 'none';
+      });
+    };
+    fetch('/api/auth/me', { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        var role = data && data.role ? data.role : fallbackRole;
+        try { localStorage.setItem('netsentinel_role', role); } catch (e) { /* ignore */ }
+        apply(role);
+      })
+      .catch(function () { apply(fallbackRole); });
+  }
+
   function displayName(email) {
     if (!email) return 'CyberShield User';
     var local = email.split('@')[0].replace(/[._-]+/g, ' ').trim();
@@ -66,15 +87,6 @@
         var link = item.closest('a');
         link.style.display = (!q || item.textContent.toLowerCase().includes(q)) ? '' : 'none';
       });
-    });
-  }
-
-  function applyRoleVisibility() {
-    var role = 'member';
-    try { role = localStorage.getItem('netsentinel_role') || 'member'; } catch (e) { /* ignore */ }
-    var isAdmin = role === 'admin';
-    document.querySelectorAll('a[href="clients.html"]').forEach(function (a) {
-      a.style.display = isAdmin ? '' : 'none';
     });
   }
 
