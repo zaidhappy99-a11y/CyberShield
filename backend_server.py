@@ -21,7 +21,20 @@ FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 WEB_DIR = os.path.join(BASE_DIR, "web")
 DATA_DIR = os.path.join(BASE_DIR, "data")
 USERS_FILE = os.path.join(DATA_DIR, "users.json")
-JAVA_BACKEND_URL = os.environ.get("NETSENTINEL_JAVA_URL", "http://localhost:8080").rstrip("/")
+# Java detector backend. Empty string = disabled (demo data). On Render the
+# demo data is used unless NETSENTINEL_JAVA_URL points at a real Java server.
+# IMPORTANT: never point this at the same port this Flask app serves on —
+# that creates a recursive proxy loop (every /api/* call re-enters itself).
+JAVA_BACKEND_URL = os.environ.get("NETSENTINEL_JAVA_URL", "").rstrip("/")
+if JAVA_BACKEND_URL:
+    try:
+        _java_port = urllib_parse.urlparse(JAVA_BACKEND_URL).port
+        _self_port = int(os.environ.get("PORT", "8080"))
+        if _java_port == _self_port and urllib_parse.urlparse(JAVA_BACKEND_URL).hostname in ("localhost", "127.0.0.1", "0.0.0.0"):
+            print("[backend_server] NETSENTINEL_JAVA_URL points at this server — disabling Java proxy")
+            JAVA_BACKEND_URL = ""
+    except ValueError:
+        pass
 
 # NOTE: static_folder is None on purpose. Flask's automatic static route
 # would otherwise swallow the /app/ + /web/ NetSentinel mounts (404/redirects).
@@ -33,9 +46,17 @@ app.secret_key = os.environ.get("SECRET_KEY", "cybershield-dev-secret-key-change
 app.config.update(
     SESSION_COOKIE_SAMESITE="Lax",
     SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SECURE=os.environ.get("SESSION_COOKIE_SECURE", "1") == "1",
+    # Secure is set per-request based on the actual scheme (see before_request).
+    # Setting it globally breaks http://localhost and drops sessions there.
+    SESSION_COOKIE_SECURE=False,
     PERMANENT_SESSION_LIFETIME=12 * 60 * 60,
 )
+
+@app.before_request
+def _set_cookie_secure_per_request():
+    # Render (and any reverse proxy) terminates HTTPS upstream; honor the forwarded proto.
+    proto = request.headers.get("X-Forwarded-Proto", "").lower()
+    app.config["SESSION_COOKIE_SECURE"] = request.is_secure or proto == "https"
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 DEMO_ALERTS = [
@@ -124,6 +145,8 @@ DEMO_QUARANTINE = [
 
 
 def _request_json_from_java(path, method="GET", payload=None):
+    if not JAVA_BACKEND_URL:  # Java detector disabled — serve demo data instantly
+        return None
     url = f"{JAVA_BACKEND_URL}{path}"
     body = None if payload is None else json.dumps(payload).encode("utf-8")
     req = urllib_request.Request(url, data=body, method=method)

@@ -8,7 +8,7 @@
 const isFileProtocol = window.location.protocol === 'file:';
 const API_BASE = isFileProtocol ? '' : window.location.origin;
 
-function logoutNetSentinel() {
+async function logoutNetSentinel() {
   if (!isFileProtocol) {
     try {
       const controller = new AbortController();
