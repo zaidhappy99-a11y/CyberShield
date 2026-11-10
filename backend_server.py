@@ -213,10 +213,28 @@ def _current_user():
     return _load_users().get(email)
 
 
+# Admin access: only these emails can see the client list.
+# Comma-separated via env var ADMIN_EMAILS; default points to Alexander.
+ADMIN_EMAILS = {e.strip().lower() for e in os.environ.get("ADMIN_EMAILS", "silverf409@gmail.com").split(",") if e.strip()}
+
+
+def _is_admin(email):
+    return (email or "").lower() in ADMIN_EMAILS
+
+
 def _require_login():
     """Server-side gate: anonymous visitors go to /login.html."""
     if _current_user() is None:
         return redirect("/login.html")
+    return None
+
+
+def _require_admin():
+    """Strict gate for the client list — admins only."""
+    if _current_user() is None:
+        return redirect("/login.html")
+    if not _is_admin(session.get("user")):
+        return _build_error("Admin access required", 403)
     return None
 
 
@@ -507,7 +525,8 @@ def api_login():
     session.clear()
     session.permanent = True
     session["user"] = email
-    return jsonify({"status": "success", "user": {"email": email, "fullName": record.get("fullName", "")}, "role": "admin"})
+    role = "admin" if _is_admin(email) else "member"
+    return jsonify({"status": "success", "user": {"email": email, "fullName": record.get("fullName", "")}, "role": role})
 
 
 @app.route("/api/auth/register", methods=["POST", "OPTIONS"])
@@ -540,7 +559,8 @@ def api_register():
     session.clear()
     session.permanent = True
     session["user"] = email
-    return jsonify({"status": "success", "user": {"email": email, "fullName": full_name}})
+    role = "admin" if _is_admin(email) else "member"
+    return jsonify({"status": "success", "user": {"email": email, "fullName": full_name}, "role": role})
 
 
 @app.route("/api/auth/logout", methods=["POST", "OPTIONS"])
@@ -557,6 +577,8 @@ def api_clients():
         return "", 204
     if _current_user() is None:
         return _build_error("Not signed in", 401)
+    if not _is_admin(session.get("user")):
+        return _build_error("Admin access required — only administrators can view the client list", 403)
     
     if request.method == "DELETE":
         payload = request.get_json(silent=True) or {}
@@ -583,7 +605,7 @@ def api_clients():
             "fullName": record.get("fullName", ""),
             "organization": record.get("organization", ""),
             "created": record.get("created", ""),
-            "role": "Admin" if email == session.get("user") else "Member"
+            "role": "Admin" if _is_admin(email) else "Member"
         })
     client_list.sort(key=lambda c: c["email"])
     return jsonify({"status": "success", "clients": client_list})
@@ -594,7 +616,8 @@ def api_me():
     user = _current_user()
     if user is None:
         return _build_error("Not signed in", 401)
-    return jsonify({"status": "success", "user": session.get("user")})
+    email = session.get("user")
+    return jsonify({"status": "success", "user": email, "fullName": user.get("fullName", ""), "role": "admin" if _is_admin(email) else "member"})
 
 
 @app.route("/app/")
@@ -628,12 +651,16 @@ def serve_frontend(path="index.html"):
         home = getHomeForUser()
         if home is not None:
             return home
-    # Pages that need a signed-in account.
+    # Admin-only page: only Alexander (and other ADMIN_EMAILS) can view the client list.
+    if (path or "") == "clients.html":
+        gate = _require_admin()
+        if gate is not None:
+            return gate
     if (path or "") in ("scanner.html", "netsentinel.html", "404.html"):
         gate = _require_login()
         if gate is not None:
             return gate
-    if (path or "") in ("vulnerabilities.html", "reports.html", "team.html", "settings.html", "clients.html"):
+    if (path or "") in ("vulnerabilities.html", "reports.html", "team.html", "settings.html"):
         gate = _require_login()
         if gate is not None:
             return gate

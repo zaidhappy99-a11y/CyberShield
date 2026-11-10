@@ -22,11 +22,12 @@ function getScannerUrl() {
     return '/scanner.html';
 }
 
-function storeAuthUser(user, email) {
+function storeAuthUser(user, email, role) {
     const name = (user && (user.fullName || user.name || user.username || user.email || user)) || email || 'demo@netsentinel.local';
     try {
         localStorage.setItem('netsentinel_user', String(email || name));
         sessionStorage.setItem('netsentinel_user', String(email || name));
+        if (role) localStorage.setItem('netsentinel_role', String(role));
         if (name && name !== email) localStorage.setItem('netsentinel_name', String(name));
     } catch (e) { /* storage unavailable */ }
 }
@@ -249,7 +250,7 @@ function initAuthForms() {
             setLoading('loginForm', true, 'Signing you in…');
             try {
                 const result = await API.login({ email, password });
-                storeAuthUser(result && result.user, email);
+                storeAuthUser(result && result.user, email, result && result.role);
                 setFormMessage('loginForm', 'Signed in! Opening your NetSentinel dashboard…', 'success');
                 showToast('Login successful — opening NetSentinel…', 'success');
                 window.location.href = getScannerUrl();
@@ -301,7 +302,7 @@ function initAuthForms() {
             setLoading('registerForm', true, 'Creating your account…');
             try {
                 const result = await API.register(payload);
-                storeAuthUser(result && result.user, payload.email);
+                storeAuthUser(result && result.user, payload.email, result && result.role);
                 setFormMessage('registerForm', 'Account created! Opening your NetSentinel dashboard…', 'success');
                 showToast('Account created — opening NetSentinel…', 'success');
                 window.location.href = getScannerUrl();

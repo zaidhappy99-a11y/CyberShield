@@ -84,6 +84,7 @@
         const load = async () => {
             try {
                 const res = await fetch('/api/clients', { credentials: 'same-origin' });
+                if (res.status === 403) { loading.textContent = 'Admin access only — ask Alexander to give you the admin role.'; table.hidden = true; return; }
                 if (!res.ok) throw new Error('load');
                 const data = await res.json();
                 all = data.clients || [];

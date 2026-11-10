@@ -69,9 +69,19 @@
     });
   }
 
+  function applyRoleVisibility() {
+    var role = 'member';
+    try { role = localStorage.getItem('netsentinel_role') || 'member'; } catch (e) { /* ignore */ }
+    var isAdmin = role === 'admin';
+    document.querySelectorAll('a[href="clients.html"]').forEach(function (a) {
+      a.style.display = isAdmin ? '' : 'none';
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     populateUserBar();
     wireLogout();
     wireSearch();
+    applyRoleVisibility();
   });
 })();
