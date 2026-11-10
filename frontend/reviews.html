@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reviews | CyberShield</title>
+    <meta name="description" content="Real reviews from teams who use CyberShield to catch security holes early. See ratings, quotes, and what people love.">
+    <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .reviews-hero { background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 100%); padding: 130px 0 60px; text-align: center; }
+        .reviews-hero h1 { font-size: 2.6rem; color: var(--dark); margin-bottom: .5rem; }
+        .reviews-hero p { color: var(--text-light); max-width: 540px; margin: 0 auto; }
+        .overall-badge { display: flex; align-items: center; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin: 2rem auto 0; max-width: 820px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem 2rem; box-shadow: var(--shadow); }
+        .overall-num { font-size: 3.2rem; font-weight: 800; color: var(--dark); }
+        .overall-meta { display: flex; flex-direction: column; gap: .2rem; }
+        .positive-count { color: var(--text-light); font-size: .9rem; }
+        .overall-stars { color: #f59e0b; font-size: 1.5rem; letter-spacing: 3px; }
+        .bars { flex: 1; min-width: 260px; display: flex; flex-direction: column; gap: .45rem; }
+        .bar-row { display: flex; align-items: center; gap: .6rem; font-size: .85rem; color: var(--text-light); }
+        .bar-track { flex: 1; height: 10px; background: var(--bg); border-radius: 999px; overflow: hidden; }
+        .bar-fill { height: 100%; background: var(--warning); border-radius: 999px; }
+        .reviews-grid-wrap { padding: 70px 0 90px; }
+        .reviews-page-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1.5rem; }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a class="nav-logo" href="index.html"><i class="fas fa-shield-halved"></i><span>CyberShield</span></a>
+            <div class="nav-links" id="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="index.html#how" class="nav-link">How it works</a>
+                <a href="index.html#features" class="nav-link">Features</a>
+                <a href="reviews.html" class="nav-link">Reviews</a>
+                <a href="index.html#contact" class="nav-link">Contact</a>
+            </div>
+            <div class="nav-actions">
+                <a href="login.html" class="btn btn-outline">Login</a>
+                <a href="register.html" class="btn btn-primary">Get Started — it's free</a>
+            </div>
+            <button class="nav-toggle" id="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+        </div>
+    </nav>
+
+    <header class="reviews-hero">
+        <div class="container">
+            <h1>Real reviews, real results</h1>
+            <p>See why thousands of teams trust CyberShield to catch security holes early — before it's an issue.</p>
+            <div class="overall-badge">
+                <div class="overall-num">4.8</div>
+                <div class="overall-meta">
+                    <div class="overall-stars">★★★★★</div>
+                    <span class="positive-count">312+ verified reviews</span>
+                    <span class="positive-count">94% would recommend CyberShield</span>
+                </div>
+                <div class="bars">
+                    <div class="bar-row"><span>5★</span><div class="bar-track"><div class="bar-fill" style="width:86%"></div></div><span>268</span></div>
+                    <div class="bar-row"><span>4★</span><div class="bar-track"><div class="bar-fill" style="width:9%"></div></div><span>28</span></div>
+                    <div class="bar-row"><span>3★</span><div class="bar-track"><div class="bar-fill" style="width:3%"></div></div><span>9</span></div>
+                    <div class="bar-row"><span>2★</span><div class="bar-track"><div class="bar-fill" style="width:1%"></div></div><span>4</span></div>
+                    <div class="bar-row"><span>1★</span><div class="bar-track"><div class="bar-fill" style="width:1%"></div></div><span>3</span></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="reviews-grid-wrap">
+        <div class="container">
+            <div class="reviews-page-grid">
+                <figure class="review-card"><div class="review-stars">★★★★★</div><blockquote class="review-quote">"We had a stored-XSS hole our scanners missed. CyberShield flagged it in the first run and told us exactly how to fix it. Saved us a breach, honestly."</blockquote><figcaption class="review-author"><span class="review-avatar">AR</span><div><strong>Alex Rivera</strong><small>CTO, Northwind Labs · AppSec</small></div></figcaption></figure>
+                <figure class="review-card"><div class="review-stars">★★★★★</div><blockquote class="review-quote">"The plain-English reports mean I don't need a security hire. Our agency uses CyberShield on every client site now — the scans are fast and clients understand the fixes."</blockquote><figcaption class="review-author"><span class="review-avatar">JM</span><div><strong>Priya Nair</strong><small>Independent consultant · Web studios</small></div></figcaption></figure>
+                <figure class="review-card"><div class="review-stars">★★★★☆</div><blockquote class="review-quote">"The NetSentinel dashboard is gorgeous and the simulated attacks actually teach the team. Wish it had slightly faster scan times for very large sites."</blockquote><figcaption class="review-author"><span class="review-avatar">DK</span><div><strong>Daniel Kim</strong><small>Lead, Meridian Health · Enterprise</small></div></figcaption></figure>
+                <figure class="review-card"><div class="review-stars">★★★★★</div><blockquote class="review-quote">"One-click IP quarantine moved us from 'detected for 3 days' to 'blocked in 3 seconds'. The ROI write-up sold our board on the SOC too."</blockquote><figcaption class="review-author"><span class="review-avatar">RB</span><div><strong>Rachel Brooks</strong><small>VP Engineering, Vantage Financial</small></div></figcaption></figure>
+                <figure class="review-card"><div class="review-stars">★★★★★</div><blockquote class="review-quote">"Support answered my question in about 2 hours at 10pm. The fix walkthrough they sent we now use in onboarding docs."</blockquote><figcaption class="review-author"><span class="review-avatar">TS</span><div><strong>Tom Sanders</strong><small>DevOps, Finch & Co</small></div></figcaption></figure>
+                <figure class="review-card"><div class="review-stars">★★★★☆</div><blockquote class="review-quote">"The free tier is genuinely useful for a personal blog. Upgraded the day our traffic spiked. Wish billing accepted crypto, minor wish."</blockquote><figcaption class="review-author"><span class="review-avatar">EV</span><div><strong>Elena Vasquez</strong><small>Personal blogger · Freelance</small></div></figcaption></figure>
+                <figure class="review-card"><div class="review-stars">★★★★★</div><blockquote class="review-quote">"We ran the simulation console during a team workshop. Seeing the radar blip while everyone guessed what attack launched = best hour of the offsite."</blockquote><figcaption class="review-author"><span class="review-avatar">MC</span><div><strong>Marcus Chen</strong><small>CTO, Orbital AppWorks</small></div></figcaption></figure>
+                <figure class="review-card"><div class="review-stars">★★★★★</div><blockquote class="review-quote">"Our e-commerce checkout got flagged for a missing header and we fixed it before the holiday rush. That one save paid for a year."</blockquote><figcaption class="review-author"><span class="review-avatar">LI</span><div><strong>Lina Ibrahim</strong><small>Founder, Bloom & Co · SMB</small></div></figcaption></figure>
+                <figure class="review-card"><div class="review-stars">★★★★☆</div><blockquote class="review-quote">"Beautiful UI, straightforward onboarding, documentation that assumes you're smart but not a security expert. Would love Slack integration."</blockquote><figcaption class="review-author"><span class="review-avatar">OP</span><div><strong>Omar Patel</strong><small>Platform lead, Kestrel GmbH</small></div></figcaption></figure>
+            </div>
+            <div class="reviews-cta">
+                <a href="register.html" class="btn btn-primary btn-large">Join them — start free <i class="fas fa-arrow-right"></i></a>
+                <a href="index.html#contact" class="btn btn-outline btn-large">Talk to us first</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom"><p>&copy; 2026 CyberShield Security. All rights reserved. &nbsp;|&nbsp; <a href="index.html">Home</a> &nbsp;|&nbsp; <a href="mailto:support@cybershield.io">support@cybershield.io</a> &nbsp;|&nbsp; <a href="tel:+18005550199">+1 (800) 555-0199</a></p></div>
+        </div>
+    </footer>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>

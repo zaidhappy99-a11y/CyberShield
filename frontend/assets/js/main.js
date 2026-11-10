@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     initDashboard();
     initLandingNav();
+    initContactForm();
 });
 
 // ===== Navigation =====
@@ -40,6 +41,7 @@ function initNavbar() {
 
     // Scroll effect
     window.addEventListener('scroll', () => {
+        if (!navbar) return; // auth pages have no navbar
         if (window.scrollY > 50) {
             navbar.classList.add('scrolled');
         } else {
@@ -175,6 +177,38 @@ function initPasswordStrength() {
     };
     input.addEventListener('input', update);
     document.getElementById('confirmPassword')?.addEventListener('input', update);
+}
+
+function initContactForm() {
+    const form = document.getElementById('contactForm');
+    if (!form) return;
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const name = form.name.value.trim();
+        const email = form.email.value.trim();
+        const subject = form.subject.value.trim();
+        const message = form.message.value.trim();
+        if (!name || !email || !subject || !message) {
+            showToast('Please fill in every field first', 'error');
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showToast('That email doesn\'t look right', 'error');
+            return;
+        }
+        const btn = form.querySelector('#contactSubmit');
+        const original = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-circle-notch spin"></i> Sending…';
+        // Open the visitor's email client with everything pre-filled — no backend mail server needed.
+        const body = `Name: ${name}\nEmail: ${email}\n\n${message}`;
+        window.location.href = `mailto:support@cybershield.io?subject=${encodeURIComponent('[CyberShield] ' + subject)}&body=${encodeURIComponent(body)}`;
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.innerHTML = original;
+            showToast('Your message is ready to send — check your email app!', 'success');
+        }, 800);
+    });
 }
 
 function initFaq() {

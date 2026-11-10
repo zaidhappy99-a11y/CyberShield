@@ -21,8 +21,8 @@
                 <a href="#home" class="nav-link">Home</a>
                 <a href="#how" class="nav-link">How it works</a>
                 <a href="#features" class="nav-link">Features</a>
-                <a href="#scanner" class="nav-link">Scanner</a>
-                <a href="#faq" class="nav-link">FAQ</a>
+                <a href="#reviews" class="nav-link">Reviews</a>
+                <a href="#contact" class="nav-link">Contact</a>
             </div>
             <div class="nav-actions">
                 <a href="login.html" class="btn btn-outline">Login</a>
@@ -52,6 +52,36 @@
                 </div>
             </div>
             <div class="hero-visual" aria-hidden="true">
+                <!-- Animated radar shield artwork -->
+                <div class="radar-scene">
+                    <svg class="radar-svg" viewBox="0 0 240 240" role="img" aria-label="Animated radar shield scanning">
+                        <defs>
+                            <radialGradient id="radarGlow" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#c7d2fe" stop-opacity="0.9"/>
+                                <stop offset="100%" stop-color="#c7d2fe" stop-opacity="0"/>
+                            </radialGradient>
+                            <linearGradient id="sweepGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#818cf8" stop-opacity="0.95"/>
+                                <stop offset="100%" stop-color="#818cf8" stop-opacity="0"/>
+                            </linearGradient>
+                        </defs>
+                        <circle cx="120" cy="120" r="112" fill="url(#radarGlow)"/>
+                        <circle cx="120" cy="120" r="100" fill="none" stroke="#c7d2fe" stroke-width="1.5" stroke-dasharray="4 6"/>
+                        <circle cx="120" cy="120" r="68" fill="none" stroke="#c7d2fe" stroke-width="1.5" stroke-dasharray="4 6"/>
+                        <circle cx="120" cy="120" r="36" fill="none" stroke="#c7d2fe" stroke-width="1.5" stroke-dasharray="4 6"/>
+                        <line x1="120" y1="10" x2="120" y2="230" stroke="#e0e7ff" stroke-width="1"/>
+                        <line x1="10" y1="120" x2="230" y2="120" stroke="#e0e7ff" stroke-width="1"/>
+                        <g class="radar-sweep"><path d="M120 120 L120 20 A100 100 0 0 1 205 75 Z" fill="url(#sweepGrad)"/></g>
+                        <path d="M120 82l30 11v22c0 23-14 41-30 50-16-9-30-27-30-50V93l30-11z" fill="#4f46e5" stroke="#4338ca" stroke-width="2"/>
+                        <path d="M104 122l11 11 22-24" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle class="blip blip-a" cx="70" cy="70" r="6" fill="#6366f1"/>
+                        <circle class="blip blip-b" cx="165" cy="95" r="5" fill="#0ea5e9"/>
+                        <circle class="blip blip-c" cx="140" cy="170" r="6" fill="#16a34a"/>
+                    </svg>
+                    <div class="float-chip chip-1"><i class="fas fa-lock"></i> All systems safe</div>
+                    <div class="float-chip chip-2"><i class="fas fa-bolt"></i> 2.4s scan</div>
+                    <div class="float-chip chip-3"><i class="fas fa-shield-halved"></i> 0 threats</div>
+                </div>
                 <div class="scan-card">
                     <div class="scan-card-head"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span><strong>Your scan report</strong></div>
                     <div class="scan-row"><span class="scan-check ok"><i class="fas fa-check"></i></span><div><strong>Login form</strong><small>Looks safe</small></div></div>
@@ -130,6 +160,45 @@
         </div>
     </section>
 
+    <!-- Reviews preview -->
+    <section class="reviews" id="reviews">
+        <div class="container">
+            <div class="section-header"><h2 class="section-title">Loved by teams who can't afford downtime</h2><p class="section-subtitle">Real reviews from people who used CyberShield to catch issues early.</p></div>
+            <div class="review-grid">
+                <figure class="review-card"><div class="review-stars">★★★★★</div><blockquote class="review-quote">"We had a stored-XSS hole our scanners missed. CyberShield flagged it in the first run and told us exactly how to fix it."</blockquote><figcaption class="review-author"><span class="review-avatar">AR</span><div><strong>Alex Rivera</strong><small>CTO, Northwind Labs</small></div></figcaption></figure>
+                <figure class="review-card"><div class="review-stars">★★★★★</div><blockquote class="review-quote">"The plain-English reports mean I don't need a security hire. Our agency uses it on every client site now."</blockquote><figcaption class="review-author"><span class="review-avatar">JM</span><div><strong>Priya Nair</strong><small>Independent consultant</small></div></figcaption></figure>
+                <figure class="review-card"><div class="review-stars">★★★★☆</div><blockquote class="review-quote">"NetSentinel's dashboard is gorgeous and the simulated attacks actually teach the team. Slightly faster scans would be perfect."</blockquote><figcaption class="review-author"><span class="review-avatar">DK</span><div><strong>Daniel Kim</strong><small>Lead, Meridian Health</small></div></figcaption></figure>
+            </div>
+            <div class="reviews-cta">
+                <div class="reviews-score"><b>4.8/5</b><span>from 312+ reviews</span></div>
+                <a href="reviews.html" class="btn btn-outline btn-large">Read all reviews <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact -->
+    <section class="contact" id="contact">
+        <div class="container">
+            <div class="section-header"><h2 class="section-title">Get in touch</h2><p class="section-subtitle">Questions about plans or security needs? We're one message away.</p></div>
+            <div class="contact-grid">
+                <div class="contact-details">
+                    <div class="contact-item"><i class="fas fa-envelope"></i><div><b>Email us</b><a href="mailto:support@cybershield.io">support@cybershield.io</a></div></div>
+                    <div class="contact-item"><i class="fas fa-phone-alt"></i><div><b>Call us</b><a href="tel:+18005550199">+1 (800) 555-0199</a><br><span>Mon–Fri, 9am–6pm ET</span></div></div>
+                    <div class="contact-item"><i class="fas fa-map-marker-alt"></i><div><b>Visit</b><span>400 Innovation Drive, Suite 210<br>Austin, TX 78701</span></div></div>
+                    <div class="contact-item"><i class="fas fa-clock"></i><div><b>Response time</b><span>We reply within one business day — usually faster.</span></div></div>
+                </div>
+                <form id="contactForm" class="contact-form" novalidate>
+                    <div><label for="cfName">Your name</label><input id="cfName" name="name" placeholder="Alex Carter" required></div>
+                    <div><label for="cfEmail">Your email</label><input id="cfEmail" name="email" type="email" placeholder="you@example.com" required></div>
+                    <div><label for="cfSubject">What do you need?</label><input id="cfSubject" name="subject" placeholder="e.g. pricing, demo, support" required></div>
+                    <div><label for="cfMessage">Message</label><textarea id="cfMessage" name="message" rows="3" placeholder="Tell us a little about your site or team…" required></textarea></div>
+                    <button type="submit" class="btn btn-primary btn-block" id="contactSubmit">Send message <i class="fas fa-paper-plane"></i></button>
+                    <p class="contact-note"><i class="fas fa-lock"></i> We never share your details. You'll get a personal reply, not a bot.</p>
+                </form>
+            </div>
+        </div>
+    </section>
+
     <!-- About -->
     <section class="about" id="about">
         <div class="container">
@@ -144,10 +213,9 @@
     <footer class="footer">
         <div class="container">
             <div class="footer-grid">
-                <div class="footer-brand"><a class="nav-logo" href="#home"><i class="fas fa-shield-halved"></i><span>CyberShield</span></a><p class="footer-text">Security checks in plain language — sign up, scan, and watch your site in NetSentinel.</p></div>
-                <div class="footer-links"><h4>Product</h4><a href="#how">How it works</a><a href="#features">Features</a><a href="#scanner">Scanner</a><a href="#faq">FAQ</a></div>
-                <div class="footer-links"><h4>Get started</h4><a href="register.html">Create free account</a><a href="login.html">Sign in</a><a href="login.html">Open dashboard</a></div>
-                <div class="footer-links"><h4>Company</h4><a href="#about">About</a><a href="#">Privacy</a><a href="#">Terms</a></div>
+                <div class="footer-brand"><a class="nav-logo" href="#home"><i class="fas fa-shield-halved"></i><span>CyberShield</span></a><p class="footer-text">Security checks in plain language — sign up, scan, and watch your site in NetSentinel.<br><br><i class="fas fa-envelope"></i> <a href="mailto:support@cybershield.io">support@cybershield.io</a><br><i class="fas fa-phone-alt"></i> <a href="tel:+18005550199">+1 (800) 555-0199</a><br><i class="fas fa-map-marker-alt"></i> 400 Innovation Drive, Suite 210, Austin, TX 78701</p></div>
+                <div class="footer-links"><h4>Product</h4><a href="#how">How it works</a><a href="#features">Features</a><a href="#scanner">Scanner</a><a href="reviews.html">Reviews</a></div>
+                <div class="footer-links"><h4>Company</h4><a href="#about">About</a><a href="#contact">Contact</a><a href="mailto:support@cybershield.io">Email us</a></div>
             </div>
             <div class="footer-bottom"><p>&copy; 2026 CyberShield Security. All rights reserved.</p></div>
         </div>
