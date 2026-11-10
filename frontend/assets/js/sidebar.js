@@ -12,6 +12,14 @@
     }
   }
 
+  function getDisplayName(email) {
+    try {
+      var saved = localStorage.getItem('netsentinel_name');
+      if (saved) return saved;
+    } catch (e) { /* ignore */ }
+    return displayName(email);
+  }
+
   function displayName(email) {
     if (!email) return 'CyberShield User';
     var local = email.split('@')[0].replace(/[._-]+/g, ' ').trim();
@@ -21,7 +29,7 @@
 
   function populateUserBar() {
     var email = getUserEmail();
-    var name = displayName(email);
+    var name = getDisplayName(email);
     document.querySelectorAll('.user-name, .sidebar-user-name').forEach(function (el) {
       el.textContent = name;
     });

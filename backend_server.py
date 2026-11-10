@@ -507,7 +507,7 @@ def api_login():
     session.clear()
     session.permanent = True
     session["user"] = email
-    return jsonify({"status": "success", "user": email, "role": "admin"})
+    return jsonify({"status": "success", "user": {"email": email, "fullName": record.get("fullName", "")}, "role": "admin"})
 
 
 @app.route("/api/auth/register", methods=["POST", "OPTIONS"])
@@ -540,7 +540,7 @@ def api_register():
     session.clear()
     session.permanent = True
     session["user"] = email
-    return jsonify({"status": "success", "user": email})
+    return jsonify({"status": "success", "user": {"email": email, "fullName": full_name}})
 
 
 @app.route("/api/auth/logout", methods=["POST", "OPTIONS"])

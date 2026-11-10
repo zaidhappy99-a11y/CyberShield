@@ -23,10 +23,11 @@ function getScannerUrl() {
 }
 
 function storeAuthUser(user, email) {
-    const name = (user && (user.email || user.username || user.name || user)) || email || 'demo@netsentinel.local';
+    const name = (user && (user.fullName || user.name || user.username || user.email || user)) || email || 'demo@netsentinel.local';
     try {
-        localStorage.setItem('netsentinel_user', String(name));
-        sessionStorage.setItem('netsentinel_user', String(name));
+        localStorage.setItem('netsentinel_user', String(email || name));
+        sessionStorage.setItem('netsentinel_user', String(email || name));
+        if (name && name !== email) localStorage.setItem('netsentinel_name', String(name));
     } catch (e) { /* storage unavailable */ }
 }
 
