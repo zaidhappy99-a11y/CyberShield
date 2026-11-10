@@ -597,9 +597,22 @@ def ignore_v1(path):
     return _build_error("Not found", 404)
 
 
+def getHomeForUser():
+    """Signed-in users land on the scanner; anonymous users get the landing page."""
+    if _current_user() is not None:
+        return redirect("/scanner.html")
+    return None
+
+
 @app.route("/")
 @app.route("/<path:path>")
 def serve_frontend(path="index.html"):
+    # The scanner is the signed-in home page — visiting / while logged in
+    # takes you straight there.
+    if path == "" or path == "index.html":
+        home = getHomeForUser()
+        if home is not None:
+            return home
     # The scanner needs a signed-in account too (mirrors the /app/ gate).
     if (path or "") == "scanner.html":
         gate = _require_login()

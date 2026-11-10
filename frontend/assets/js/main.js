@@ -14,6 +14,13 @@ function getNetSentinelUrl() {
     return '/app/';
 }
 
+function getScannerUrl() {
+    if (window.location.protocol === 'file:') {
+        return 'scanner.html';
+    }
+    return '/scanner.html';
+}
+
 function storeAuthUser(user, email) {
     const name = (user && (user.email || user.username || user.name || user)) || email || 'demo@netsentinel.local';
     try {
@@ -243,7 +250,7 @@ function initAuthForms() {
                 storeAuthUser(result && result.user, email);
                 setFormMessage('loginForm', 'Signed in! Opening your NetSentinel dashboard…', 'success');
                 showToast('Login successful — opening NetSentinel…', 'success');
-                window.location.href = getNetSentinelUrl();
+                window.location.href = getScannerUrl();
             } catch (error) {
                 console.error('Login failed:', error);
                 const msg = (error && error.message && !error.message.startsWith('HTTP'))
@@ -295,7 +302,7 @@ function initAuthForms() {
                 storeAuthUser(result && result.user, payload.email);
                 setFormMessage('registerForm', 'Account created! Opening your NetSentinel dashboard…', 'success');
                 showToast('Account created — opening NetSentinel…', 'success');
-                window.location.href = getNetSentinelUrl();
+                window.location.href = getScannerUrl();
             } catch (error) {
                 console.error('Registration failed:', error);
                 const msg = (error && error.message && !error.message.startsWith('HTTP'))
@@ -323,10 +330,14 @@ function initLandingNav() {
     const navActions = document.querySelector('.nav-actions');
     if (!navActions) return;
     navActions.innerHTML = '';
+    const scannerLink = document.createElement('a');
+    scannerLink.href = getScannerUrl();
+    scannerLink.className = 'btn btn-primary';
+    scannerLink.textContent = 'Open Scanner';
     const appLink = document.createElement('a');
     appLink.href = getNetSentinelUrl();
-    appLink.className = 'btn btn-primary';
-    appLink.textContent = 'Open NetSentinel App';
+    appLink.className = 'btn btn-outline';
+    appLink.textContent = 'NetSentinel';
     const logout = document.createElement('a');
     logout.href = '#';
     logout.className = 'btn btn-outline';
@@ -339,6 +350,7 @@ function initLandingNav() {
         } catch (err) { /* ignore */ }
         window.location.href = 'login.html';
     });
+    navActions.appendChild(scannerLink);
     navActions.appendChild(appLink);
     navActions.appendChild(logout);
 }
