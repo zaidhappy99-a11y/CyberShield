@@ -448,6 +448,7 @@ img { max-width: 100%; height: auto; }
     .nav-links { position: fixed; top: 72px; left: -100%; width: 100%; height: calc(100vh - 72px); background: var(--white); flex-direction: column; padding: 2rem; transition: var(--transition); box-shadow: var(--shadow); }
     .nav-links.active { left: 0; }
     .nav-toggle { display: flex; }
+    .nav-actions { display: none; } /* mobile header shows just the CyberShield brand */
     .sidebar-toggle { display: block; }
     .dashboard-content { padding: 95px 1rem 3rem; }
     .top-bar-search { max-width: 220px; margin: 0 1rem; }
